@@ -46,6 +46,9 @@ public class TopTitles extends Configured implements Tool {
         jobA.setOutputKeyClass(Text.class);
         jobA.setOutputValueClass(IntWritable.class);
 
+        jobA.setMapOutputKeyClass(Text.class);
+        jobA.setMapOutputValueClass(IntWritable.class);
+
         jobA.setMapperClass(TitleCountMap.class);
         jobA.setReducerClass(TitleCountReduce.class);
 
