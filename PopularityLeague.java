@@ -121,8 +121,9 @@ public class PopularityLeague extends Configured implements Tool {
 			String leaguePath = conf.get("league");
 		        List<String> leaguesstr = Arrays.asList(readHDFSFile(leaguePath, conf).split("\n"));
 			 for (String tempval : leaguesstr) {
-                                leagues.add(Integer.parseInt(tempval));
-                        }
+				 Integer temint = Integer.parseInt(tempval);
+                 this.leagues.add(temint);
+             }
 
 		}
 
@@ -137,7 +138,7 @@ public class PopularityLeague extends Configured implements Tool {
 				if (fromlink) {
 					Integer linkid = Integer.parseInt(st.nextToken().trim()
 							.toLowerCase());
-					if(leagues.contains(linkid))
+					if(this.leagues.contains(linkid))
 		        	{
 						context.write(new IntWritable(linkid), new IntWritable(0));
 		        	}
@@ -145,7 +146,7 @@ public class PopularityLeague extends Configured implements Tool {
 				} else {
 					Integer linkid = Integer.parseInt(st.nextToken().trim()
 							.toLowerCase());
-					if(leagues.contains(linkid))
+					if(this.leagues.contains(linkid))
 		        	{
 						context.write(new IntWritable(linkid), new IntWritable(1));
 		        	}
@@ -174,22 +175,6 @@ public class PopularityLeague extends Configured implements Tool {
 			Mapper<Text, Text, NullWritable, IntArrayWritable> {
 
 		// TODO
-
-		 List<Integer> leagues = new ArrayList<Integer>();
-
-                @Override
-                protected void setup(Context context) throws IOException,
-                                InterruptedException {
-                        Configuration conf = context.getConfiguration();
-                        String leaguePath = conf.get("league");
-                        List<String> leaguesstr = Arrays.asList(readHDFSFile(leaguePath, conf).split("\n"));
-                         for (String tempval : leaguesstr) {
-                                leagues.add(Integer.parseInt(tempval));
-                        }
-
-                }
-
-
 		@Override
 		public void map(Text key, Text value, Context context)
 				throws IOException, InterruptedException {
@@ -219,17 +204,17 @@ public class PopularityLeague extends Configured implements Tool {
 			for (IntArrayWritable val : values) {
 				IntWritable[] pair = (IntWritable[]) val.toArray();
 				Integer count = pair[1].get();
-				countRankMap.put(count, 0);			
+				this.countRankMap.put(count, 0);			
 			}
 			
-			for (Map.Entry<Integer, Integer> entry : countRankMap.entrySet()) {
+			for (Map.Entry<Integer, Integer> entry : this.countRankMap.entrySet()) {
 				Integer outkey = entry.getKey();
 	    	    Integer value = entry.getValue();
-	    	    for (Map.Entry<Integer, Integer> inentry : countRankMap.entrySet()) {
+	    	    for (Map.Entry<Integer, Integer> inentry : this.countRankMap.entrySet()) {
 					Integer inkey = entry.getKey();
 		    	    Integer invalue = entry.getValue();		    	    
 		    		if(outkey < inkey){
-		    			countRankMap.put(inkey, invalue + 1);
+		    			this.countRankMap.put(inkey, invalue + 1);
 		    		}		    		
 		    	}
 	    	}
@@ -238,60 +223,9 @@ public class PopularityLeague extends Configured implements Tool {
 				IntWritable[] pair = (IntWritable[]) val.toArray();
 				Integer linkid = pair[0].get();
 				Integer count = pair[1].get();
-				context.write(new IntWritable(linkid), new IntWritable(countRankMap.get(count)));		
+				context.write(new IntWritable(linkid), new IntWritable(this.countRankMap.get(count)));		
 			}		
 			
 		}
-	}
-}
-
-class Pair<A extends Comparable<? super A>, B extends Comparable<? super B>>
-		implements Comparable<Pair<A, B>> {
-
-	public final A first;
-	public final B second;
-
-	public Pair(A first, B second) {
-		this.first = first;
-		this.second = second;
-	}
-
-	public static <A extends Comparable<? super A>, B extends Comparable<? super B>> Pair<A, B> of(
-			A first, B second) {
-		return new Pair<A, B>(first, second);
-	}
-
-	@Override
-	public int compareTo(Pair<A, B> o) {
-		int cmp = o == null ? 1 : (this.first).compareTo(o.first);
-		return cmp == 0 ? (this.second).compareTo(o.second) : cmp;
-	}
-
-	@Override
-	public int hashCode() {
-		return 31 * hashcode(first) + hashcode(second);
-	}
-
-	private static int hashcode(Object o) {
-		return o == null ? 0 : o.hashCode();
-	}
-
-	@Override
-	public boolean equals(Object obj) {
-		if (!(obj instanceof Pair))
-			return false;
-		if (this == obj)
-			return true;
-		return equal(first, ((Pair<?, ?>) obj).first)
-				&& equal(second, ((Pair<?, ?>) obj).second);
-	}
-
-	private boolean equal(Object o1, Object o2) {
-		return o1 == o2 || (o1 != null && o1.equals(o2));
-	}
-
-	@Override
-	public String toString() {
-		return "(" + first + ", " + second + ')';
 	}
 }
