@@ -53,13 +53,13 @@ public class OrphanPages extends Configured implements Tool {
             boolean fromlink = true;
             while (st.hasMoreTokens()) {
                 if(fromlink){
-                    Integer key = Integer.parseInt(st.nextToken().trim().toLowerCase());
-                    context.write(new IntWritable(key), new IntWritable(0));
+                    Integer keyid = Integer.parseInt(st.nextToken().trim().toLowerCase());
+                    context.write(new IntWritable(keyid), new IntWritable(0));
                     fromlink = false;
                 }
                 else{
-                    Integer key = Integer.parseInt(st.nextToken().trim().toLowerCase());
-                    context.write(new IntWritable(key), new IntWritable(1));
+                    Integer keyid = Integer.parseInt(st.nextToken().trim().toLowerCase());
+                    context.write(new IntWritable(keyid), new IntWritable(1));
                 }
 
             }

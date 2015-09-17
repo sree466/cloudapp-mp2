@@ -104,13 +104,13 @@ public class TopPopularLinks extends Configured implements Tool {
             boolean fromlink = true;
             while (st.hasMoreTokens()) {
                 if(fromlink){
-                    Integer key = Integer.parseInt(st.nextToken().trim().toLowerCase());
-                    context.write(new IntWritable(key), new IntWritable(0));
+                    Integer keyid = Integer.parseInt(st.nextToken().trim().toLowerCase());
+                    context.write(new IntWritable(keyid), new IntWritable(0));
                     fromlink = false;
                 }
                 else{
-                    Integer key = Integer.parseInt(st.nextToken().trim().toLowerCase());
-                    context.write(new IntWritable(key), new IntWritable(1));
+                    Integer keyid = Integer.parseInt(st.nextToken().trim().toLowerCase());
+                    context.write(new IntWritable(keyid), new IntWritable(1));
                 }
 
             }
@@ -126,7 +126,7 @@ public class TopPopularLinks extends Configured implements Tool {
             for (IntWritable val : values) {
                 sum += val.get();
             }
-            context.write(key, new IntWritabl(sum));
+            context.write(key, new IntWritable(sum));
         }
     }
 
@@ -177,9 +177,9 @@ public class TopPopularLinks extends Configured implements Tool {
         public void reduce(NullWritable key, Iterable<IntArrayWritable> values, Context context) throws IOException, InterruptedException {
             // TODO
             for (IntArrayWritable val: values) {
-                Integer[] pair= (Integer[]) val.toArray();
-                Integer linkid = pair[0];
-                Integer count = pair[1];
+                IntWritable[] pair= (IntWritable[]) val.toArray();
+                Integer linkid = pair[0].get();
+                Integer count = pair[1].get();
                 countToIDMap.add(new Pair<Integer, Integer>(count, linkid));
                 if (countToIDMap.size() > this.N) {
                     countToIDMap.remove(countToIDMap.first());

@@ -112,14 +112,18 @@ public class PopularityLeague extends Configured implements Tool {
 			Mapper<Object, Text, IntWritable, IntWritable> {
 		// TODO
 		
-		List<Integer> leagues;
+		List<Integer> leagues = new ArrayList<Integer>();
 
 		@Override
 		protected void setup(Context context) throws IOException,
 				InterruptedException {
 			Configuration conf = context.getConfiguration();
 			String leaguePath = conf.get("league");
-	        this.leagues = Arrays.asList(readHDFSFile(leaguePath, conf).split("\n"));
+		        List<String> leaguesstr = Arrays.asList(readHDFSFile(leaguePath, conf).split("\n"));
+			 for (String tempval : leaguesstr) {
+                                leagues.add(Integer.parseInt(tempval));
+                        }
+
 		}
 
 		@Override
@@ -131,19 +135,19 @@ public class PopularityLeague extends Configured implements Tool {
 			boolean fromlink = true;
 			while (st.hasMoreTokens()) {
 				if (fromlink) {
-					Integer key = Integer.parseInt(st.nextToken().trim()
+					Integer linkid = Integer.parseInt(st.nextToken().trim()
 							.toLowerCase());
 					if(leagues.contains(linkid))
 		        	{
-						context.write(new IntWritable(key), new IntWritable(0));
+						context.write(new IntWritable(linkid), new IntWritable(0));
 		        	}
 					fromlink = false;
 				} else {
-					Integer key = Integer.parseInt(st.nextToken().trim()
+					Integer linkid = Integer.parseInt(st.nextToken().trim()
 							.toLowerCase());
 					if(leagues.contains(linkid))
 		        	{
-						context.write(new IntWritable(key), new IntWritable(1));
+						context.write(new IntWritable(linkid), new IntWritable(1));
 		        	}
 				}
 
@@ -162,7 +166,7 @@ public class PopularityLeague extends Configured implements Tool {
 			for (IntWritable val : values) {
 				sum += val.get();
 			}
-			context.write(key, new IntWritabl(sum));
+			context.write(key, new IntWritable(sum));
 		}
 	}
 
@@ -170,6 +174,21 @@ public class PopularityLeague extends Configured implements Tool {
 			Mapper<Text, Text, NullWritable, IntArrayWritable> {
 
 		// TODO
+
+		 List<Integer> leagues = new ArrayList<Integer>();
+
+                @Override
+                protected void setup(Context context) throws IOException,
+                                InterruptedException {
+                        Configuration conf = context.getConfiguration();
+                        String leaguePath = conf.get("league");
+                        List<String> leaguesstr = Arrays.asList(readHDFSFile(leaguePath, conf).split("\n"));
+                         for (String tempval : leaguesstr) {
+                                leagues.add(Integer.parseInt(tempval));
+                        }
+
+                }
+
 
 		@Override
 		public void map(Text key, Text value, Context context)
@@ -198,27 +217,27 @@ public class PopularityLeague extends Configured implements Tool {
 				Context context) throws IOException, InterruptedException {
 			// TODO
 			for (IntArrayWritable val : values) {
-				Integer[] pair = (Integer[]) val.toArray();
-				Integer count = pair[1];
+				IntWritable[] pair = (IntWritable[]) val.toArray();
+				Integer count = pair[1].get();
 				countRankMap.put(count, 0);			
 			}
 			
 			for (Map.Entry<Integer, Integer> entry : countRankMap.entrySet()) {
-				Integer key = entry.getKey();
+				Integer outkey = entry.getKey();
 	    	    Integer value = entry.getValue();
 	    	    for (Map.Entry<Integer, Integer> inentry : countRankMap.entrySet()) {
 					Integer inkey = entry.getKey();
 		    	    Integer invalue = entry.getValue();		    	    
-		    		if(key < inkey){
+		    		if(outkey < inkey){
 		    			countRankMap.put(inkey, invalue + 1);
 		    		}		    		
 		    	}
 	    	}
 			
 			for (IntArrayWritable val : values) {
-				Integer[] pair = (Integer[]) val.toArray();
-				Integer linkid = pair[0];
-				Integer count = pair[1];
+				IntWritable[] pair = (IntWritable[]) val.toArray();
+				Integer linkid = pair[0].get();
+				Integer count = pair[1].get();
 				context.write(new IntWritable(linkid), new IntWritable(countRankMap.get(count)));		
 			}		
 			

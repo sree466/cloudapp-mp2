@@ -134,8 +134,8 @@ public class TopTitleStatistics extends Configured implements Tool {
             String line = value.toString();
             StringTokenizer st = new StringTokenizer(line , delimiters);
             while (st.hasMoreTokens()) {
-                String key = st.nextToken().trim().toLowerCase();
-                if(!stopWords.contains(key))
+                String nextToken = st.nextToken().trim().toLowerCase();
+                if(!stopWords.contains(nextToken))
                 {
                     context.write(new Text(nextToken), new IntWritable(1));
                 }
@@ -215,18 +215,25 @@ public class TopTitleStatistics extends Configured implements Tool {
                     countToWordMap.remove(countToWordMap.first());
                 }
             }
-
+            boolean foundfirst = false;
             for (Pair<Integer, String> item: countToWordMap) {
                 IntWritable value = new IntWritable(item.first);
-                sum += value;
-                min = Integer.min(min , value);
-                max = Integer.max(min, value);
+                sum += value.get();
+		if(!foundfirst){
+                	min = value.get();
+                	max = value.get();
+			foundfirst = true;
+		}
+		else{
+			min = min < value.get() ? min : value.get();
+                        max = max > value.get() ? max : value.get();
+		}
             }
             mean = sum / this.N;
 
             for (Pair<Integer, String> item: countToWordMap) {
                 IntWritable value = new IntWritable(item.first);
-                Integer diff = mean - value;
+                Integer diff = mean - value.get();
                 diff *= diff;
                 var += diff;
             }
