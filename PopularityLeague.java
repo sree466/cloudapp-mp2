@@ -84,7 +84,7 @@ public class PopularityLeague extends Configured implements Tool {
 		FileOutputFormat.setOutputPath(jobB, new Path(args[1]));
 
 		jobB.setInputFormatClass(KeyValueTextInputFormat.class);
-		jobB.setOutputFormatClass(TextOutputFormat.class);
+	//	jobB.setOutputFormatClass(TextOutputFormat.class);
 
 		jobB.setJarByClass(PopularityLeague.class);
 		return jobB.waitForCompletion(true) ? 0 : 1;
@@ -194,7 +194,8 @@ public class PopularityLeague extends Configured implements Tool {
 			Reducer<NullWritable, IntArrayWritable, IntWritable, IntWritable> {
 		
 		private Map<Integer, Integer> countRankMap= new HashMap<Integer,Integer>();
-
+		private Map<Integer, Integer> linkcountMap= new HashMap<Integer,Integer>();
+		List<Integer> counts = new ArrayList<Integer>();
 		// TODO
 		@Override
 		public void reduce(NullWritable key, Iterable<IntArrayWritable> values,
@@ -202,28 +203,32 @@ public class PopularityLeague extends Configured implements Tool {
 			// TODO
 			for (IntArrayWritable val : values) {
 				IntWritable[] pair = (IntWritable[]) val.toArray();
+				Integer linkid = pair[0].get();
 				Integer count = pair[1].get();
-				this.countRankMap.put(count, 0);			
+				this.countRankMap.put(count, 0);
+				this.linkcountMap.put(linkid, count);
+				counts.add(count);
+		//		context.write(new IntWritable(linkid), new IntWritable(count));			
 			}
 			
 			for (Map.Entry<Integer, Integer> entry : this.countRankMap.entrySet()) {
 				Integer outkey = entry.getKey();
-	    	    Integer value = entry.getValue();
-	    	    for (Map.Entry<Integer, Integer> inentry : this.countRankMap.entrySet()) {
-					Integer inkey = entry.getKey();
-		    	    Integer invalue = entry.getValue();		    	    
-		    		if(outkey < inkey){
-		    			this.countRankMap.put(inkey, invalue + 1);
-		    		}		    		
-		    	}
-	    	}
+	    	    		Integer value = entry.getValue();
+				for(Integer count : this.counts){
+					if(count < outkey){
+						value += 1;
+					}
+				}
+    				this.countRankMap.put(outkey, value);	    		
+		    		
+	    		}
+			for (Map.Entry<Integer, Integer> entry : this.linkcountMap.entrySet()) {
+                                Integer linkid = entry.getKey();
+                    		Integer count = entry.getValue();
+                    		context.write(new IntWritable(linkid), new IntWritable(this.countRankMap.get(count)));
+                	}
+
 			
-			for (IntArrayWritable val : values) {
-				IntWritable[] pair = (IntWritable[]) val.toArray();
-				Integer linkid = pair[0].get();
-				Integer count = pair[1].get();
-				context.write(new IntWritable(linkid), new IntWritable(this.countRankMap.get(count)));		
-			}		
 			
 		}
 	}
