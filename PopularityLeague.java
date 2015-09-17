@@ -181,12 +181,11 @@ public class PopularityLeague extends Configured implements Tool {
 			// TODO
 			Integer count = Integer.parseInt(value.toString());
 			Integer linkid = Integer.parseInt(key.toString());
-			if(leagues.contains(linkid))
-        	{
+			
 				Integer[] strings = { linkid, count };
 				IntArrayWritable val = new IntArrayWritable(strings);
 				context.write(NullWritable.get(), val);        			
-        	}			
+        			
 		}
 		
 	}
